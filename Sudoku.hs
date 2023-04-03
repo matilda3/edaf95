@@ -34,18 +34,6 @@ parseBoard :: String -> [(String, Int)]
 parseBoard = zip board . map digitToInt . replacePointsWithZeroes
 
 unitList :: [[String]]
-unitList' = [take 4 board]++ -- row A
-    [take 4 $ dropWhile (< "B1") board]++ --row B
-    [take 4 $ dropWhile (< "C1") board]++ --row C
-    [take 4 $ dropWhile (< "D1") board]++ --row D
-    [cross rows ['1']]++ --col 1
-    [cross rows ['2']]++ --col 2
-    [cross rows ['3']]++ --col 3
-    [cross rows ['4']]++ --col 4
-    [cross ['A', 'B'] ['1', '2']]++ -- box ul
-    [cross ['A', 'B'] ['3', '4']]++ -- box ur
-    [cross ['C', 'D'] ['1', '2']]++ --box ll
-    [cross ['C', 'D'] ['3', '4']] --box lr
 unitList = [cross [xs] cols | xs <- rows] ++ --rows
     [cross rows [xs] | xs <- cols] ++ --cols
     [cross xs ys | xs <- [take 2 rows, drop 2 rows], ys <- [take 2 cols, drop 2 cols]] --boxes
@@ -95,9 +83,6 @@ lookups [] _ = []
 lookups (x:xs) tl = justifyList [lookup x tl | x <- [x]++xs]
 
 validSquare :: (String, Int) -> [(String, Int)] -> Bool
-validSquare tp tl = 
+validSquare (_, 0) tl = True
+validSquare tp tl = snd tp `notElem` lookups (getPeers $ fst tp) tl
 
--- list of peers to fst tp e.g. A1    
---[justifyList $ lookup $ fst tp peers]
-filter (aidfunc2 tp ) tl
-aidfunc2 tp1 tp2 = filter ((fst tp2) `elem` [justifyList $ lookup $ fst tp1 peers]) (fst tp2)
