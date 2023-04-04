@@ -97,3 +97,15 @@ verifySudoku st = validBoard $ parseBoard st
 
 reduceList :: (Foldable t, Eq a) => [a] -> t a -> [a]
 reduceList xs ys = [x | x <- xs, x `notElem` ys]
+
+validSquareNumbers :: (String, Int) -> [(String, Int)] -> (String, [Int])
+validSquareNumbers (sq, v) xs
+    | (v `elem` [1, 2, 3, 4]) && validSquare (sq, v) xs = (sq, [v])
+    | (v `elem` [1, 2, 3, 4]) && not (validSquare (sq, v) xs) = (sq, [])
+    | otherwise = (sq, reduceList [1, 2, 3, 4] (lookups (getPeers sq) xs))
+
+validBoardNumbers :: [(String, Int)] -> [(String, [Int])]
+validBoardNumbers tl = map (`validSquareNumbers` tl) tl
+
+validUnit :: [String] -> [(String, [Int])] -> Bool
+validUnit xs tl = lookups xs tl
