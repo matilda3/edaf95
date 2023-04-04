@@ -2,7 +2,6 @@
 
 module Sudoku where
 import Data.Char (digitToInt)
-import Data.Maybe (isJust)
 
 rows :: String
 rows = "ABCD"
@@ -86,3 +85,10 @@ validSquare :: (String, Int) -> [(String, Int)] -> Bool
 validSquare (_, 0) tl = True
 validSquare tp tl = snd tp `notElem` lookups (getPeers $ fst tp) tl
 
+validBoard :: [(String, Int)] -> Bool
+validBoard tl
+    |False `elem` [validSquare s tl | s <- tl] = False
+    |otherwise = True
+
+verifySudoku :: String -> Bool
+verifySudoku st = validBoard $ parseBoard st
