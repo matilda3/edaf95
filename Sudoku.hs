@@ -1,7 +1,6 @@
 --Authors: Matilda Flodin & Edvin Antius
 
 module Sudoku where
-import Data.Char (digitToInt)
 
 rows :: String
 rows = "ABCD"
@@ -28,9 +27,12 @@ aidfunc x
 board :: [String]
 board = cross rows cols
 
+digitToInt' :: Char -> Int
+digitToInt' c = read [c] :: Int
+
 --board string
 parseBoard :: String -> [(String, Int)]
-parseBoard = zip board . map digitToInt . replacePointsWithZeroes
+parseBoard = zip board . map digitToInt' . replacePointsWithZeroes
 
 unitList :: [[String]]
 unitList = [cross [xs] cols | xs <- rows] ++ --rows
@@ -92,3 +94,6 @@ validBoard tl
 
 verifySudoku :: String -> Bool
 verifySudoku st = validBoard $ parseBoard st
+
+reduceList :: (Foldable t, Eq a) => [a] -> t a -> [a]
+reduceList xs ys = [x | x <- xs, x `notElem` ys]
