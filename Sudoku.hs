@@ -96,7 +96,7 @@ validBoard tl
 
 --st = board st
 verifySudoku :: String -> Bool
-verifySudoku st = validBoard $ parseBoard st
+verifySudoku = validBoard . parseBoard
 
 reduceList :: (Foldable t, Eq a) => [a] -> t a -> [a]
 reduceList xs ys = [x | x <- xs, x `notElem` ys]
@@ -121,4 +121,4 @@ validUnits :: [(String, [Int])] -> Bool
 validUnits tl = all (`validUnit` tl) unitList
 
 verifySudoku' :: String -> Bool
-verifySudoku' st = validUnits $ validBoardNumbers $ parseBoard st
+verifySudoku' = validUnits . validBoardNumbers . parseBoard
