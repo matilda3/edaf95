@@ -114,7 +114,9 @@ validBoardNumbers tl = map (`validSquareNumbers` tl) tl
 
 --xs = units, tl = validBoardNumbers
 validUnit :: [String] -> [(String, [Int])] -> Bool
-validUnit xs tl = and [x `elem` concat (lookups xs tl) | x <- [1..4]]
+validUnit xs tl
+    | [] `elem` lookups xs tl = False
+    | otherwise = and [x `elem` concat (lookups xs tl) | x <- [1..4]]
 
 --tl = validboardnumbers
 validUnits :: [(String, [Int])] -> Bool
@@ -122,3 +124,9 @@ validUnits tl = all (`validUnit` tl) unitList
 
 verifySudoku' :: String -> Bool
 verifySudoku' = validUnits . validBoardNumbers . parseBoard
+
+-- "1....23...1...4." t
+-- "1...2...3...4..." t
+-- "1..42..33..24..1" t
+-- "12341234........" f
+-- "1....23.4.1...4." f
