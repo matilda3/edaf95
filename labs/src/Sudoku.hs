@@ -1,6 +1,8 @@
 --Authors: Matilda Flodin & Edvin Antius
 
 module Sudoku where
+import System.Random
+
 
 rows :: String
 rows = "ABCD"
@@ -130,3 +132,10 @@ verifySudoku' = validUnits . validBoardNumbers . parseBoard
 -- "1..42..33..24..1" t
 -- "12341234........" f
 -- "1....23.4.1...4." f
+
+giveMeANumber :: IO ()
+giveMeANumber = do
+    num1 <- getLine
+    num2 <- getLine
+    rand <- randomRIO (read num1 :: Int, read num2 :: Int)
+    print rand
