@@ -71,6 +71,7 @@ fromMaybe :: a -> Maybe a -> a
 fromMaybe n Nothing = n
 fromMaybe n (Just x) = x
 
+--st = "A1" etc.
 getPeers :: String -> [String]
 getPeers st = fromMaybe ["Nothing"] $ lookup st peers
 
@@ -83,6 +84,7 @@ lookups _ [] = []
 lookups [] _ = []
 lookups (x:xs) tl = justifyList [lookup x tl | x <- [x]++xs]
 
+-- Ex tp = ("A1", 3), tl= board setup
 validSquare :: (String, Int) -> [(String, Int)] -> Bool
 validSquare (_, 0) tl = True
 validSquare tp tl = snd tp `notElem` lookups (getPeers $ fst tp) tl
@@ -92,20 +94,31 @@ validBoard tl
     |False `elem` [validSquare s tl | s <- tl] = False
     |otherwise = True
 
+--st = board st
 verifySudoku :: String -> Bool
 verifySudoku st = validBoard $ parseBoard st
 
 reduceList :: (Foldable t, Eq a) => [a] -> t a -> [a]
 reduceList xs ys = [x | x <- xs, x `notElem` ys]
 
+--Ex ("A1", 2) boardsetup
 validSquareNumbers :: (String, Int) -> [(String, Int)] -> (String, [Int])
 validSquareNumbers (sq, v) xs
-    | (v `elem` [1, 2, 3, 4]) && validSquare (sq, v) xs = (sq, [v])
-    | (v `elem` [1, 2, 3, 4]) && not (validSquare (sq, v) xs) = (sq, [])
-    | otherwise = (sq, reduceList [1, 2, 3, 4] (lookups (getPeers sq) xs))
+    | (v `elem` [1..4]) && validSquare (sq, v) xs = (sq, [v])
+    | (v `elem` [1..4]) && not (validSquare (sq, v) xs) = (sq, [])
+    | otherwise = (sq, reduceList [1..4] (lookups (getPeers sq) xs))
 
+--tl = board setup
 validBoardNumbers :: [(String, Int)] -> [(String, [Int])]
 validBoardNumbers tl = map (`validSquareNumbers` tl) tl
 
+--xs = units, tl = validBoardNumbers
 validUnit :: [String] -> [(String, [Int])] -> Bool
-validUnit xs tl = lookups xs tl
+validUnit xs tl = and [x `elem` concat (lookups xs tl) | x <- [1..4]]
+
+--tl = validboardnumbers
+validUnits :: [(String, [Int])] -> Bool
+validUnits tl = all (`validUnit` tl) unitList
+
+verifySudoku' :: String -> Bool
+verifySudoku' st = validUnits $ validBoardNumbers $ parseBoard st
