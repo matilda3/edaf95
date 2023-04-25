@@ -3,9 +3,9 @@
 module Sudoku where
 import System.Random
 
-
 rows :: String
 rows = "ABCD"
+cols :: String
 cols = "1234"
 
 --containsElem :: Eq a => a -> [a] -> Bool
@@ -139,3 +139,29 @@ giveMeANumber = do
     num2 <- getLine
     rand <- randomRIO (read num1 :: Int, read num2 :: Int)
     print rand
+
+
+printSudoku :: [(String, Int)] -> IO()
+printSudoku tl = do
+    let vs = [validSquare s tl | s <- tl]
+    let vb = map ((not .null) . snd) (validBoardNumbers tl)
+    
+    putStrLn "____________"
+    putStrLn $ unwords $ take 4 $ map (show . snd) tl
+    putStrLn $ unwords $ take 4 $ drop 4 $ map (show . snd) tl
+    putStrLn $ unwords $ take 4 $ drop 8 $ map (show . snd) tl
+    putStrLn $ unwords $ drop 12 $ map (show . snd) tl
+    putStrLn "____________"
+    putStrLn "Simple conflicts"
+    putStrLn $ unwords $ take 4 $ map show vs
+    putStrLn $ unwords $ take 4 $ drop 4 $ map show vs
+    putStrLn $ unwords $ take 4 $ drop 8 $ map show vs
+    putStrLn $ unwords $ drop 12 $ map show vs
+    putStrLn "____________"
+    putStrLn "Blocking conflicts: False squares cannot be filled"
+    putStrLn $ unwords $ take 4 $ map show vb
+    putStrLn $ unwords $ take 4 $ drop 4 $ map show vb
+    putStrLn $ unwords $ take 4 $ drop 8 $ map show vb
+    putStrLn $ unwords $ drop 12 $ map show vb
+
+-- map (not .null) (snd $ unzip $ validBoardNumbers tl)
