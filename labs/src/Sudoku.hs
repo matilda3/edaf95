@@ -140,28 +140,21 @@ giveMeANumber = do
     rand <- randomRIO (read num1 :: Int, read num2 :: Int)
     print rand
 
-separate :: Int -> [a] -> [[a]]
-separate _ [] = []
-separate i ls = take i ls : separate i (drop i ls)
+chunkOf' :: Int -> [a] -> [[a]]
+chunkOf' _ [] = []
+chunkOf' i ls = take i ls : chunkOf' i (drop i ls)
 
 --let tl = parseBoard "1....23.4.1...4."
 printSudoku :: [(String, Int)] -> IO()
 printSudoku tl = do
     let vs = [validSquare s tl | s <- tl]
     let vb = map ((not .null) . snd) (validBoardNumbers tl)
-    mapM_ (putStrLn . unwords) (separate 4 $ map (show . snd) tl)
-    putStrLn "____________"
-    putStrLn "Simple conflicts"
-    putStrLn $ unwords $ take 4 $ map show vs
-    putStrLn $ unwords $ take 4 $ drop 4 $ map show vs
-    putStrLn $ unwords $ take 4 $ drop 8 $ map show vs
-    putStrLn $ unwords $ drop 12 $ map show vs
+    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map (show . snd) tl)
+    putStr "____________"
+    putStrLn "Simple conflicts: False is illegal number"
+    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map show vs)
     putStrLn "____________"
     putStrLn "Blocking conflicts: False squares cannot be filled"
-    putStrLn $ unwords $ take 4 $ map show vb
-    putStrLn $ unwords $ take 4 $ drop 4 $ map show vb
-    putStrLn $ unwords $ take 4 $ drop 8 $ map show vb
-    putStrLn $ unwords $ drop 12 $ map show vb
+    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map show vb)
     putStrLn "____________"
 
--- map (not .null) (snd $ unzip $ validBoardNumbers tl)
