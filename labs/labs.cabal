@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lib
       Sudoku
+      Sudoku4
   other-modules:
       Paths_labs
   hs-source-dirs:
