@@ -1,6 +1,10 @@
-module Main (main) where
+module Main where
 
-import Lib
+import Sudoku
 
-main :: IO ()
-main = someFunc
+main :: IO()
+main = do
+    contents <- readFile "input.txt"
+    let size = length $ head $ lines contents
+    let sudokus = map concat (chunkOf' size $ filter ('=' `notElem`) (lines contents))
+    mapM_ (printSudoku . parseBoard) sudokus

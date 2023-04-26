@@ -4,9 +4,9 @@ module Sudoku where
 import System.Random
 
 rows :: String
-rows = "ABCD"
+rows = take 9 ['A'..'Z']
 cols :: String
-cols = "1234"
+cols = take 9 ['1'..'9']
 
 --containsElem :: Eq a => a -> [a] -> Bool
 --containsElem _ [] = False
@@ -39,7 +39,7 @@ parseBoard = zip board . map digitToInt' . replacePointsWithZeroes
 unitList :: [[String]]
 unitList = [cross [xs] cols | xs <- rows] ++ --rows
     [cross rows [xs] | xs <- cols] ++ --cols
-    [cross xs ys | xs <- [take 2 rows, drop 2 rows], ys <- [take 2 cols, drop 2 cols]] --boxes
+    [cross xs ys | xs <- [take 3 rows, take 3 (drop 3 rows), drop 6 rows], ys <- [take 3 cols, take 3 (drop 3 cols), drop 6 cols]] --boxes
 
 
 filterUnitList :: String -> [[String]]
@@ -106,9 +106,9 @@ reduceList xs ys = [x | x <- xs, x `notElem` ys]
 --Ex ("A1", 2) boardsetup
 validSquareNumbers :: (String, Int) -> [(String, Int)] -> (String, [Int])
 validSquareNumbers (sq, v) xs
-    | (v `elem` [1..4]) && validSquare (sq, v) xs = (sq, [v])
-    | (v `elem` [1..4]) && not (validSquare (sq, v) xs) = (sq, [])
-    | otherwise = (sq, reduceList [1..4] (lookups (getPeers sq) xs))
+    | (v `elem` [1..9]) && validSquare (sq, v) xs = (sq, [v])
+    | (v `elem` [1..9]) && not (validSquare (sq, v) xs) = (sq, [])
+    | otherwise = (sq, reduceList [1..9] (lookups (getPeers sq) xs))
 
 --tl = board setup
 validBoardNumbers :: [(String, Int)] -> [(String, [Int])]
@@ -118,7 +118,7 @@ validBoardNumbers tl = map (`validSquareNumbers` tl) tl
 validUnit :: [String] -> [(String, [Int])] -> Bool
 validUnit xs tl
     | [] `elem` lookups xs tl = False
-    | otherwise = and [x `elem` concat (lookups xs tl) | x <- [1..4]]
+    | otherwise = and [x `elem` concat (lookups xs tl) | x <- [1..9]]
 
 --tl = validboardnumbers
 validUnits :: [(String, [Int])] -> Bool
@@ -149,12 +149,13 @@ printSudoku :: [(String, Int)] -> IO()
 printSudoku tl = do
     let vs = [validSquare s tl | s <- tl]
     let vb = map ((not .null) . snd) (validBoardNumbers tl)
-    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map (show . snd) tl)
-    putStr "____________"
+    mapM_ (putStrLn . unwords) (chunkOf' 9 $ map (show . snd) tl)
+    putStrLn "____________"
     putStrLn "Simple conflicts: False is illegal number"
-    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map show vs)
+    mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show vs)
     putStrLn "____________"
     putStrLn "Blocking conflicts: False squares cannot be filled"
-    mapM_ (putStrLn . unwords) (chunkOf' 4 $ map show vb)
+    mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show vb)
     putStrLn "____________"
 
+    --"003020600900305001001806400008102900700000008006708200002609500800203009005010300"
