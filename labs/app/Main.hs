@@ -1,3 +1,5 @@
+--Authors: Matilda Flodin & Edvin Antius
+
 module Main where
 
 import Sudoku
