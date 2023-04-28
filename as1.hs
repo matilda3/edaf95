@@ -2,10 +2,10 @@
 
 main :: IO()
 main = do
-    contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/inconsistent20.txt"
+    contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/conflicts.txt"
     let size = length $ head $ lines contents
     let sudokus = map (parseBoard size . concat) (chunkOf' size $ filter ('=' `notElem`) (lines contents))
-    mapM_ (verifySudoku size) sudokus
+    mapM_ (printSudoku size) sudokus
 
 chunkOf' :: Int -> [a] -> [[a]]
 chunkOf' _ [] = []
@@ -37,13 +37,11 @@ parseBoard x = zip (board x) . map digitToInt'
 
 unitList4 :: [[String]]
 unitList4 = [cross [xs] cols4 | xs <- rows4] ++ --rows
-     --rows
     [cross rows4 [xs] | xs <- cols4] ++ --cols
     [cross xs ys | xs <- [take 2 rows4, drop 2 rows4], ys <- [take 2 cols4, drop 2 cols4]] --boxes
 
 unitList9 :: [[String]]
 unitList9 = [cross [xs] cols9 | xs <- rows9] ++ --rows
-     --rows
     [cross rows9 [xs] | xs <- cols9] ++ --cols
     [cross xs ys | xs <- [take 3 rows9, take 3 (drop 3 rows9), drop 6 rows9], ys <- [take 3 cols9, take 3 (drop 3 cols9), drop 6 cols9]] --boxes
 
@@ -99,17 +97,39 @@ validSquareNumbers size (sq, v) xs
 validBoardNumbers :: Int -> [(String, Int)] -> [(String, [Int])]
 validBoardNumbers x tl = [validSquareNumbers x v tl | v <- tl]
 
---"010500200900001000002008030500030007008000500600080004040100700000705006003004050"
+validUnit :: Int -> [String] -> [(String, [Int])] -> Bool
+validUnit s xs tl
+    | [] `elem` lookups xs tl = False
+    | otherwise = and [x `elem` concat (lookups xs tl) | x <- [1..s]]
 
-verifySudoku :: Int -> [(String, Int)] -> IO()
-verifySudoku x tl = do
-    let vs = [validSquare x s tl | s <- tl]
-    let vb = map ((not .null) . snd) (validBoardNumbers x tl)
-    mapM_ (putStrLn . unwords) (chunkOf' x $ map (show . snd) tl)
-    putStrLn "____________"
-    putStrLn "Simple conflicts: False is illegal number"
-    mapM_ (putStrLn . unwords) (chunkOf' x $ map show vs)
-    putStrLn "____________"
-    putStrLn "Blocking conflicts: False squares cannot be filled"
-    mapM_ (putStrLn . unwords) (chunkOf' x $ map show vb)
-    putStrLn "____________"
+--tl = validboardnumbers
+validUnits :: Int -> [(String, [Int])] -> Bool
+validUnits x tl
+    | x == 4 = and [validUnit x a tl| a <- unitList4]
+    | otherwise = and [validUnit x a tl| a <- unitList9]
+
+validBoard :: Int -> [(String, Int)] -> Bool
+validBoard x tl
+    |False `elem` [validSquare x s tl | s <- tl] = False
+    |otherwise = True
+
+simpleConflicts :: Int -> String -> Bool
+simpleConflicts x = validBoard x . parseBoard x
+
+blockings :: Int -> String -> Bool
+blockings x = validUnits x . validBoardNumbers x . parseBoard x
+
+--"020030090000907000900208005004806500607000208023102900800605007000309000030020050"
+--"010500200900001000002008030500030007008000500600080004040100700000705006003004050"
+--string bool
+--verifySudoku :: String -> Bool
+
+
+printSudoku :: Int -> [(String, Int)] -> IO()
+printSudoku x tl = do
+    mapM_ putStrLn (chunkOf'
+       x
+       (concat
+          [(if not (validSquare x y tl) then "F" else (show (snd y))) |
+             y <- tl]))
+    putStrLn "----------"
