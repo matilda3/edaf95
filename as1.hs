@@ -1,10 +1,10 @@
 --authors: Matilda Flodin & Edvin Antius
 --Instructions: replace the file path in the 7th line with the file path for the chosen test file.
---Run ghci, load as1.hs, then type main.
+--Run ghc --run as1.hs
 
 main :: IO()
 main = do
-    contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/blockings.txt"
+    contents <- readFile "FILE PATH"
     let trim = reverse . dropWhile (=='\n') . reverse
     let size = length $ head $ lines contents
     let sudokus = map (parseBoard size . concat) (chunkOf' size $ filter ('=' `notElem`) (lines $ trim contents))
@@ -77,7 +77,7 @@ getPeers x st = fromMaybe ["Nothing"] $ lookup st (peers x)
 
 justifyList :: [Maybe a] -> [a]
 justifyList [] = []
-justifyList (x:xs) = [x | Just x <- [x] ++ xs]
+justifyList (x:xs) = [x | Just x <- x : xs]
 
 lookups :: Eq a => [a] -> [(a, b)] -> [b]
 lookups _ [] = []
@@ -131,5 +131,5 @@ printSudoku :: Int -> [(String, Int)] -> IO()
 printSudoku x tl = do
     mapM_ (putStrLn . unwords) (chunkOf' x ([(if not (validSquare x y tl) then "F" else show (snd y)) | y <- tl]))
     putStr "Valid Sudoku? "
-    print (verifySudoku $ concat $ map show (snd $ unzip tl))
+    print (verifySudoku $ concatMap (show . snd) tl)
     putStrLn "-----------------"
