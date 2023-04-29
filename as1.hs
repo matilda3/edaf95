@@ -1,8 +1,10 @@
 --authors: Matilda Flodin & Edvin Antius
+--Instructions: replace the file path in the 7th line with the file path for the chosen test file.
+--Run ghci, load as1.hs, then type main.
 
 main :: IO()
 main = do
-    contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/conflicts.txt"
+    contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/blockings.txt"
     let size = length $ head $ lines contents
     let sudokus = map (parseBoard size . concat) (chunkOf' size $ filter ('=' `notElem`) (lines contents))
     mapM_ (printSudoku size) sudokus
@@ -119,9 +121,6 @@ simpleConflicts x = validBoard x . parseBoard x
 blockings :: Int -> String -> Bool
 blockings x = validUnits x . validBoardNumbers x . parseBoard x
 
---"020030090000907000900208005004806500607000208023102900800605007000309000030020050"
---"010500200900001000002008030500030007008000500600080004040100700000705006003004050"
---string bool
 verifySudoku :: String -> Bool
 verifySudoku s = simpleConflicts x s && blockings x s
     where x = length s
