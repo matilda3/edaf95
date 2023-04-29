@@ -5,8 +5,9 @@
 main :: IO()
 main = do
     contents <- readFile "C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/blockings.txt"
+    let trim = reverse . dropWhile (=='\n') . reverse
     let size = length $ head $ lines contents
-    let sudokus = map (parseBoard size . concat) (chunkOf' size $ filter ('=' `notElem`) (lines contents))
+    let sudokus = map (parseBoard size . concat) (chunkOf' size $ filter ('=' `notElem`) (lines $ trim contents))
     mapM_ (printSudoku size) sudokus
 
 chunkOf' :: Int -> [a] -> [[a]]
