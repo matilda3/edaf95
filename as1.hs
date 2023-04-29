@@ -79,7 +79,7 @@ justifyList (x:xs) = [x | Just x <- [x] ++ xs]
 lookups :: Eq a => [a] -> [(a, b)] -> [b]
 lookups _ [] = []
 lookups [] _ = []
-lookups (x:xs) tl = justifyList [lookup x tl | x <- [x]++xs]
+lookups (x:xs) tl = justifyList [lookup x tl | x <- x : xs]
 
 validSquare :: Int -> (String, Int) -> [(String, Int)] -> Bool
 validSquare x (_, 0) tl = True
@@ -90,8 +90,8 @@ reduceList xs ys = [x | x <- xs, x `notElem` ys]
 
 validSquareNumbers :: Int -> (String, Int) -> [(String, Int)] -> (String, [Int])
 validSquareNumbers size (sq, v) xs
-    | (v `elem` [1..size]) && validSquare size (sq, v) xs = (sq, [v])
-    | (v `elem` [1..size]) && not (validSquare size (sq, v) xs) = (sq, [])
+    | v `elem` [1..size] && validSquare size (sq, v) xs = (sq, [v])
+    | v `elem` [1..size] && not (validSquare size (sq, v) xs) = (sq, [])
     | otherwise = (sq, reduceList [1..size] (lookups (getPeers size sq) xs))
 
 validBoardNumbers :: Int -> [(String, Int)] -> [(String, [Int])]
@@ -122,14 +122,14 @@ blockings x = validUnits x . validBoardNumbers x . parseBoard x
 --"020030090000907000900208005004806500607000208023102900800605007000309000030020050"
 --"010500200900001000002008030500030007008000500600080004040100700000705006003004050"
 --string bool
---verifySudoku :: String -> Bool
+verifySudoku :: String -> Bool
+verifySudoku s = simpleConflicts x s && blockings x s
+    where x = length s
 
 
 printSudoku :: Int -> [(String, Int)] -> IO()
 printSudoku x tl = do
-    mapM_ putStrLn (chunkOf'
-       x
-       (concat
-          [(if not (validSquare x y tl) then "F" else (show (snd y))) |
-             y <- tl]))
-    putStrLn "----------"
+    mapM_ (putStrLn . unwords) (chunkOf' x ([(if not (validSquare x y tl) then "F" else show (snd y)) | y <- tl]))
+    putStr "Valid Sudoku? "
+    print (verifySudoku $ concat $ map show (snd $ unzip tl))
+    putStrLn "-----------------"
