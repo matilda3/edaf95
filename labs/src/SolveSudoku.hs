@@ -56,7 +56,11 @@ map2 (f1, f2) tl = (f1 $ fst tl, f2 $ snd tl)
 --takes a regular function, a bool function and a list
 --returns a list that applies the function if 
 mapIf :: (a -> a) -> (a -> Bool) -> [a] -> [a]
-mapIf func bool list = [func v | v <- filter bool list]
+mapIf func bool [] = []
+mapIf func bool (x:xs)
+    |bool x = func x:mapIf func bool xs
+    |otherwise = x:mapIf func bool xs
+--mapIf func bool list = [func v | v <- filter bool list] -- keeps only the parts that are used
 
 --takes 2 maybes and returns a maybe
 maybeOr :: Maybe a -> Maybe a -> Maybe a
@@ -91,7 +95,20 @@ tryReplace y y' (x:xs)
   |x == y = Just (y':xs)
   |otherwise = fmap (x:) $ tryReplace y y' xs
 
+
+--FIX
 recursiveReplacement :: [a] -> [a] -> [a] -> Maybe [a]
 recursiveReplacement l1 (y:y':ys) (z:z':zs)
   |isJust $ tryReplace y z l1 = tryReplace y' z' l1
   |otherwise = Nothing
+
+setValue :: Int -> String -> Board -> Board
+setValue val sq = mapIf (\x -> val:snd x) (\x -> sq == fst x)
+
+eliminateValue :: Int -> String -> Board -> Board
+eliminateValue val sq = mapIf (delete val . snd) (\x -> sq == fst x)
+
+eliminate :: Int -> String -> Board -> Maybe Board
+eliminate val sq board
+  |notElem $ val lookupList sq board = Nothing
+  |
