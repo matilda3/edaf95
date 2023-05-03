@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use bimap" #-}
+{-# HLINT ignore "Use <$>" #-}
+{-# HLINT ignore "Use =<<" #-}
 module SolveSudoku where
 
 -- by Adrian Roth
@@ -95,20 +99,29 @@ tryReplace y y' (x:xs)
   |x == y = Just (y':xs)
   |otherwise = fmap (x:) $ tryReplace y y' xs
 
-
---FIX
-recursiveReplacement :: [a] -> [a] -> [a] -> Maybe [a]
-recursiveReplacement l1 (y:y':ys) (z:z':zs)
-  |isJust $ tryReplace y z l1 = tryReplace y' z' l1
-  |otherwise = Nothing
+recursiveReplacement :: Eq a => [a] -> [a] -> [a] -> Maybe [a]
+recursiveReplacement l1 [] [] = Just l1
+recursiveReplacement l1 [a] [b] = Just l1 >>= tryReplace a b
+recursiveReplacement l1 (x:xs) (y:ys) = Just l1 >>= tryReplace x y >>= \r -> recursiveReplacement r xs ys
 
 setValue :: Int -> String -> Board -> Board
-setValue val sq = mapIf (\x -> val:snd x) (\x -> sq == fst x)
+setValue val sq b = mapIf (map2((unwords . words), (val:))) (\x -> sq == fst x) b
 
 eliminateValue :: Int -> String -> Board -> Board
-eliminateValue val sq = mapIf (delete val . snd) (\x -> sq == fst x)
+eliminateValue val sq b = mapIf (map2((unwords . words), (delete val))) (\x -> sq == fst x) b
 
+
+--idk if this was what it was supposed to do with the special cases
 eliminate :: Int -> String -> Board -> Maybe Board
 eliminate val sq board
-  |notElem $ val lookupList sq board = Nothing
-  |
+  |val `notElem` lookupList sq board = Nothing
+  |otherwise = Just $ eliminateValue val sq board
+
+--lookupList sq
+assign :: Int -> String -> Board -> Maybe Board
+assign val sq b = assign' val sq (lookupList sq peers) b
+
+-- val sq (lookupList sq peers) b
+assign' :: Int -> String -> [String] -> Board -> Maybe Board
+assign' val sq [] b = Just $ setValue val sq b
+assign' val sq (x:xs) b = Just b `maybeBind` (eliminate val x) `maybeBind` (assign' val sq xs)
