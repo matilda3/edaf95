@@ -114,15 +114,19 @@ eliminateValue val sq b = mapIf (map2((unwords . words), (delete val))) (\x -> s
 --idk if this was what it was supposed to do with the special cases
 eliminate :: Int -> String -> Board -> Maybe Board
 eliminate val sq board
-  |val `notElem` lookupList sq board = Nothing
+  |val `notElem` lookupList sq board = Just board
   |otherwise = Just $ eliminateValue val sq board
 
 --lookupList sq
 assign :: Int -> String -> Board -> Maybe Board
-assign val sq bd = do assigned <- Just $ setValue val sq bd; assign' val sq (lookupList sq peers) bd
+assign val sq bd = do Just $ setValue val sq bd; assign' val sq (lookupList sq peers) bd
 
+
+--returns nothing because it tries to remove values from lists where they dont exist
 assign' :: Int -> String -> [String] -> Board -> Maybe Board
 assign' val sq [] bd = Nothing
 assign' val sq [a] bd = eliminate val a bd
 assign' val sq (x:xs) bd = eliminate val x bd >>= \r -> assign' val sq xs r
 --assign' val sq (x:xs) bd = do eliminated <- eliminate val x bd; assign' val sq xs bd
+
+--solveSudoku' :: [String] -> Board -> Maybe Board
