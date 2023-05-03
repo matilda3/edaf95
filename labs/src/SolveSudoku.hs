@@ -100,9 +100,9 @@ tryReplace y y' (x:xs)
   |otherwise = fmap (x:) $ tryReplace y y' xs
 
 recursiveReplacement :: Eq a => [a] -> [a] -> [a] -> Maybe [a]
-recursiveReplacement l1 [] [] = Just l1
-recursiveReplacement l1 [a] [b] = Just l1 >>= tryReplace a b
-recursiveReplacement l1 (x:xs) (y:ys) = Just l1 >>= tryReplace x y >>= \r -> recursiveReplacement r xs ys
+recursiveReplacement [] [] l1 = Just l1
+recursiveReplacement [a] [b] l1 = tryReplace a b l1
+recursiveReplacement (x:xs) (y:ys) l1 = tryReplace x y l1 >>= recursiveReplacement xs ys
 
 setValue :: Int -> String -> Board -> Board
 setValue val sq b = mapIf (map2((unwords . words), (val:))) (\x -> sq == fst x) b
@@ -119,9 +119,10 @@ eliminate val sq board
 
 --lookupList sq
 assign :: Int -> String -> Board -> Maybe Board
-assign val sq b = assign' val sq (lookupList sq peers) b
+assign val sq bd = do assigned <- Just $ setValue val sq bd; assign' val sq (lookupList sq peers) bd
 
--- val sq (lookupList sq peers) b
 assign' :: Int -> String -> [String] -> Board -> Maybe Board
-assign' val sq [] b = Just $ setValue val sq b
-assign' val sq (x:xs) b = Just b `maybeBind` (eliminate val x) `maybeBind` (assign' val sq xs)
+assign' val sq [] bd = Nothing
+assign' val sq [a] bd = eliminate val a bd
+assign' val sq (x:xs) bd = eliminate val x bd >>= \r -> assign' val sq xs r
+--assign' val sq (x:xs) bd = do eliminated <- eliminate val x bd; assign' val sq xs bd
