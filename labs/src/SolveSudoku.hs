@@ -1,3 +1,5 @@
+--Matilda Flodin & Edvin Antius
+
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use bimap" #-}
 {-# HLINT ignore "Use <$>" #-}
@@ -106,7 +108,7 @@ recursiveReplacement [a] [b] l1 = tryReplace a b l1
 recursiveReplacement (x:xs) (y:ys) l1 = tryReplace x y l1 >>= recursiveReplacement xs ys
 
 setValue :: Int -> String -> Board -> Board
-setValue val sq b = mapIf (map2 ((unwords . words), (val:))) (\x -> sq == fst x) b
+setValue val sq b = mapIf (map2 ((unwords . words), (\_ -> [val]))) (\x -> sq == fst x) b
 
 eliminateValue :: Int -> String -> Board -> Board
 eliminateValue val sq b = mapIf (map2 ((unwords . words), (delete val))) (\x -> sq == fst x) b
@@ -115,14 +117,16 @@ eliminateValue val sq b = mapIf (map2 ((unwords . words), (delete val))) (\x -> 
 --idk if this was what it was supposed to do with the special cases
 eliminate :: Int -> String -> Board -> Maybe Board
 eliminate val sq board
-  |null (lookupList sq (eliminateValue val sq board)) = Just board
+  |null (lookupList sq (eliminateValue val sq board)) = Nothing
   |val `notElem` lookupList sq board = Just board
-  |length (lookupList sq (eliminateValue val sq board)) == 1 = Just board
+--  |length (lookupList sq (eliminateValue val sq board)) == 1 = Just board
   |otherwise = Just $ eliminateValue val sq board
 
 --lookupList sq
 assign :: Int -> String -> Board -> Maybe Board
-assign val sq bd = do Just $ setValue val sq bd; assign' val sq (lookupList sq peers) bd
+assign val sq bd = assign' val sq (lookupList sq peers) (setValue val sq bd)
+--assign val sq bd = Just $ setValue val sq bd >>= \r -> fromJust (assign' val sq (lookupList sq peers) (r))
+--assign val sq bd = do Just $ setValue val sq bd; assign' val sq (lookupList sq peers) bd
 
 
 --returns nothing because it tries to remove values from lists where they dont exist
@@ -134,12 +138,13 @@ assign' val sq (x:xs) bd = eliminate val x bd >>= \r -> assign' val sq xs r
 
 solveSudoku' :: [String] -> Board -> Maybe Board
 solveSudoku' [] bd = Just bd
-solveSudoku' [a] bd
-  |isJust $ firstJust [assign b a bd| b <- lookupList a bd] = firstJust [assign b a bd| b <- lookupList a bd]
-  |otherwise = Nothing--go back up
-solveSudoku' (x:xs) bd
-  |isJust $ firstJust [assign b x bd| b <- lookupList x bd] = solveSudoku' xs (fromJust $ firstJust [assign b x bd| b <- lookupList x bd])
-  |otherwise = Nothing -- go back up
+--solveSudoku' [a] bd
+--  |isJust $ firstJust [assign b a bd| b <- lookupList a bd] = firstJust [assign b a bd| b <- lookupList a bd]
+--  |otherwise = Nothing--go back up
+--solveSudoku' (x:xs) bd = firstJust [assign b x bd | b <- lookupList x bd] >>= solveSudoku' xs
+solveSudoku' (x:xs) bd = firstJust [assign b x bd >>= solveSudoku' xs| b <- lookupList x bd]
+
+--"003020600900305001001806400008102900700000008006708200002609500800203009005010300"
 
 solveSudoku :: String -> Maybe Board
 solveSudoku s = solveSudoku' squares (fromJust $ parseBoard s)
