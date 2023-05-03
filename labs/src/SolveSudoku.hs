@@ -75,6 +75,7 @@ maybeOr a b
 
 --takes list of maybes returns first just item
 firstJust :: [Maybe a] -> Maybe a
+firstJust [] = Nothing
 firstJust list
   |isJust $ head list = head list
   |otherwise = firstJust $ drop 1 list
@@ -105,16 +106,18 @@ recursiveReplacement [a] [b] l1 = tryReplace a b l1
 recursiveReplacement (x:xs) (y:ys) l1 = tryReplace x y l1 >>= recursiveReplacement xs ys
 
 setValue :: Int -> String -> Board -> Board
-setValue val sq b = mapIf (map2((unwords . words), (val:))) (\x -> sq == fst x) b
+setValue val sq b = mapIf (map2 ((unwords . words), (val:))) (\x -> sq == fst x) b
 
 eliminateValue :: Int -> String -> Board -> Board
-eliminateValue val sq b = mapIf (map2((unwords . words), (delete val))) (\x -> sq == fst x) b
+eliminateValue val sq b = mapIf (map2 ((unwords . words), (delete val))) (\x -> sq == fst x) b
 
 
 --idk if this was what it was supposed to do with the special cases
 eliminate :: Int -> String -> Board -> Maybe Board
 eliminate val sq board
+  |null (lookupList sq (eliminateValue val sq board)) = Just board
   |val `notElem` lookupList sq board = Just board
+  |length (lookupList sq (eliminateValue val sq board)) == 1 = Just board
   |otherwise = Just $ eliminateValue val sq board
 
 --lookupList sq
@@ -129,4 +132,14 @@ assign' val sq [a] bd = eliminate val a bd
 assign' val sq (x:xs) bd = eliminate val x bd >>= \r -> assign' val sq xs r
 --assign' val sq (x:xs) bd = do eliminated <- eliminate val x bd; assign' val sq xs bd
 
---solveSudoku' :: [String] -> Board -> Maybe Board
+solveSudoku' :: [String] -> Board -> Maybe Board
+solveSudoku' [] bd = Just bd
+solveSudoku' [a] bd
+  |isJust $ firstJust [assign b a bd| b <- lookupList a bd] = firstJust [assign b a bd| b <- lookupList a bd]
+  |otherwise = Nothing--go back up
+solveSudoku' (x:xs) bd
+  |isJust $ firstJust [assign b x bd| b <- lookupList x bd] = solveSudoku' xs (fromJust $ firstJust [assign b x bd| b <- lookupList x bd])
+  |otherwise = Nothing -- go back up
+
+solveSudoku :: String -> Maybe Board
+solveSudoku s = solveSudoku' squares (fromJust $ parseBoard s)
