@@ -5,7 +5,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 
---"C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/ex1.txt"
+--"C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/ex2.txt"
 main :: IO()
 main = do
   putStr "Please enter the filepath of the sudoku file: "
@@ -13,13 +13,26 @@ main = do
   contents <- readFile file
   let trim = reverse . dropWhile (=='\n') . reverse
   let sudokus = map concat (chunkOf' 9 $ filter ('=' `notElem`) (lines $ trim contents))
-  --putStrLn $ show sudokus
+  --print sudokus
   putStrLn "Option 1: Solve Sudoku"
   putStrLn "Option 2: Sudoku Walkthrough"
   putStr "Please enter 1 or 2 to choose an option: "
   choice <- getLine
-  if (read choice :: Int) == 1 then printSolution (solveSudoku $ head sudokus)
-    else putStrLn "test"
+  if (read choice :: Int) == 1 then mapM_ (printSolution . solveSudoku) sudokus
+    else do 
+      let boards = map parseBoard sudokus
+      mapM_ walkthrough boards
+      --print bd
+    --mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
+
+walkthrough :: Maybe Board -> IO()
+walkthrough board = do 
+  mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) else (fst y) | y <- fromJust board]))
+  putStr "Please enter a square to change: "
+  square <- getLine
+  putStr "Please enter a number to put in that square: "
+  number <- getLine
+  print $ parseSquare (square, read number) (fromJust board)
   putStrLn "test"
 
 cross :: [a] -> [a] -> [[a]]
@@ -150,4 +163,6 @@ chunkOf' i ls = take i ls : chunkOf' i (drop i ls)
 
 --printSolution $ solveSudoku ""
 printSolution :: Maybe Board -> IO()
-printSolution bd = mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
+printSolution bd = do
+  mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
+  putStrLn "-----------------"
