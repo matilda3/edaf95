@@ -19,21 +19,27 @@ main = do
   putStr "Please enter 1 or 2 to choose an option: "
   choice <- getLine
   if (read choice :: Int) == 1 then mapM_ (printSolution . solveSudoku) sudokus
-    else do 
+    else do
+      let solvedBoards = map solveSudoku sudokus
       let boards = map parseBoard sudokus
-      mapM_ walkthrough boards
+      mapM_ walkthrough (zip boards solvedBoards)
+      putStrLn "test"
       --print bd
     --mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
 
-walkthrough :: Maybe Board -> IO()
-walkthrough board = do 
-  mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) else (fst y) | y <- fromJust board]))
-  putStr "Please enter a square to change: "
-  square <- getLine
-  putStr "Please enter a number to put in that square: "
-  number <- getLine
-  print $ parseSquare (square, read number) (fromJust board)
-  putStrLn "test"
+walkthrough :: (Maybe Board, Maybe Board) -> IO()
+walkthrough boards = do
+  let solved = snd boards
+  let board = fst boards
+  if board == solved then putStrLn "You solved the sudoku!" else do
+    mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust board]))
+    putStr "Please enter a square to change: "
+    square <- getLine
+    putStr "Please enter a number to put in that square: "
+    number <- getLine
+    if isNothing (assign (read number :: Int) square (fromJust board)) then putStrLn "That number doesn't work there!" else
+      print $ assign (read number :: Int) square (fromJust board)
+    putStrLn "test"
 
 cross :: [a] -> [a] -> [[a]]
 cross s1 s2 = [[r, c] | r <- s1, c <- s2]
