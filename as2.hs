@@ -87,6 +87,9 @@ allDigits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 infAllDigits = repeat allDigits
 emptyBoard = zip squares infAllDigits
 
+getPeers :: String -> [String]
+getPeers st = lookupList st peers
+
 parseSquare :: (String, Char) -> Board -> Maybe Board
 parseSquare (s, x) values
   | x == '.' || x == '0' = return values
@@ -177,6 +180,44 @@ solveSudoku' (x:xs) bd = firstJust [assign b x bd >>= solveSudoku' xs| b <- look
 solveSudoku :: String -> Maybe Board
 solveSudoku s = solveSudoku' squares (fromJust $ parseBoard s)
 
+validSquare :: (String, Int) -> Maybe Board -> Bool
+validSquare (_, 0) tl = True
+validSquare sq tl = snd sq `elem` lookupList (fst sq) (extractMaybeBoard tl)
+--validSquare tp tl = snd tp `notElem` concat [lookupList x (fromMaybe [("Invalid board", [0])] tl) | x <- getPeers $ fst tp]
+
+reduceList :: (Foldable t, Eq a) => [a] -> t a -> [a]
+reduceList xs ys = [x | x <- xs, x `notElem` ys]
+
+validSquareNumbers :: String -> Maybe Board -> (String, [Int])
+validSquareNumbers sq tl = (sq, lookupList sq (extractMaybeBoard tl))
+
+--validBoardNumbers :: [(String, Int)] -> [(String, [Int])]
+--validBoardNumbers tl = [validSquareNumbers v tl | v <- tl]
+
+validUnit :: [String] -> Maybe Board -> Bool
+validUnit xs tl
+    | [] `elem` lookups xs (extractMaybeBoard tl) = False
+    | otherwise = and [x `elem` concat (lookups xs (extractMaybeBoard tl)) | x <- [1..9]]
+
+--tl = validboardnumbers
+validUnits :: Maybe Board -> Bool
+validUnits tl = and [validUnit a tl| a <- unitlist]
+
+validBoard :: Maybe Board -> Bool
+validBoard tl
+    |81 > sum [length (lookupList (fst x) (extractMaybeBoard tl)) | x <- extractMaybeBoard tl] = False
+    |otherwise = True
+
+simpleConflicts :: String -> Bool
+simpleConflicts = validBoard . parseBoard
+
+blockings :: String -> Bool
+blockings = validUnits . parseBoard
+
+verifySudoku :: String -> Bool
+verifySudoku s = simpleConflicts s && blockings s
+    where x = length s
+
 chunkOf' :: Int -> [a] -> [[a]]
 chunkOf' _ [] = []
 chunkOf' i ls = take i ls : chunkOf' i (drop i ls)
@@ -186,3 +227,15 @@ printSolution :: Maybe Board -> IO()
 printSolution bd = do
   mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
   putStrLn "-----------------"
+
+lookups :: Eq a => [a] -> [(a, b)] -> [b]
+lookups _ [] = []
+lookups [] _ = []
+lookups (x:xs) tl = justifyList [lookup x tl | x <- x : xs]
+
+justifyList :: [Maybe a] -> [a]
+justifyList [] = []
+justifyList (x:xs) = catMaybes (x : xs)
+
+extractMaybeBoard :: Maybe Board -> Board
+extractMaybeBoard = fromMaybe [("Invalid board", [0])]
