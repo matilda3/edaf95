@@ -5,7 +5,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 
---"C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/ex2.txt"
+--"C:/Users/maddi/Documents/program/haskell/edaf95/labs/src/ex1.txt"
 main :: IO()
 main = do
   putStr "Please enter the filepath of the sudoku file: "
@@ -23,17 +23,19 @@ main = do
     let solvedBoards = map solveSudoku sudokus
     let boards = map parseBoard sudokus
     mapM_ options (zip boards solvedBoards)
-  
+
 options :: (Maybe Board, Maybe Board) -> IO()
 options boards = do
-  mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust $ fst boards]))
-  putStrLn "Option 1: Solve Sudoku"
-  putStrLn "Option 2: Walkthrough"
-  putStr "Please enter 1 or 2 to choose an option: "
-  c <- getLine
-  if (read c :: Int) == 1 then printSolution $ snd boards
+  if not (validBoard (fst boards)) then putStr $ "This is not a valid sudoku.\n" ++ "-----------------\n"
   else do
-    walkthrough boards
+    mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust $ fst boards]))
+    putStrLn "Option 1: Solve Sudoku"
+    putStrLn "Option 2: Walkthrough"
+    putStr "Please enter 1 or 2 to choose an option: "
+    c <- getLine
+    if (read c :: Int) == 1 then printSolution $ snd boards
+    else do
+      walkthrough boards
   --putStrLn "test"
 
 walkthrough :: (Maybe Board, Maybe Board) -> IO()
@@ -47,7 +49,7 @@ walkthrough boards = do
     square <- getLine
     putStr "Please enter a number to put in that square: "
     number <- getLine
-    if isNothing (assign (read number :: Int) square (fromJust board)) then do 
+    if (read number :: Int) `notElem` lookupList square (fromJust solved) then do
       putStrLn "That number doesn't work there!"
       walkthrough (board, solved)
       else do
@@ -176,9 +178,10 @@ solveSudoku' [] bd = Just bd
 solveSudoku' (x:xs) bd = firstJust [assign b x bd >>= solveSudoku' xs| b <- lookupList x bd]
 
 --"003020600900305001001806400008102900700000008006708200002609500800203009005010300"
+--"020030090000907000900208005004806500607000208023102900800605007000309000030020050"
 
 solveSudoku :: String -> Maybe Board
-solveSudoku s = solveSudoku' squares (fromJust $ parseBoard s)
+solveSudoku s = if validBoard $ parseBoard s then solveSudoku' squares (fromJust $ parseBoard s) else Nothing
 
 validSquare :: (String, Int) -> Maybe Board -> Bool
 validSquare (_, 0) tl = True
@@ -225,7 +228,8 @@ chunkOf' i ls = take i ls : chunkOf' i (drop i ls)
 --printSolution $ solveSudoku ""
 printSolution :: Maybe Board -> IO()
 printSolution bd = do
-  mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
+  if isNothing bd then putStrLn "This is not a valid sudoku"
+  else mapM_ (putStrLn . unwords) (chunkOf' 9 $ map show (concatMap snd (fromJust bd)))
   putStrLn "-----------------"
 
 lookups :: Eq a => [a] -> [(a, b)] -> [b]
