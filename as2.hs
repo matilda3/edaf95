@@ -13,7 +13,6 @@ main = do
   contents <- readFile file
   let trim = reverse . dropWhile (=='\n') . reverse
   let sudokus = map concat (chunkOf' 9 $ filter ('=' `notElem`) (lines $ trim contents))
-  --print sudokus
   putStrLn "Option 1: Solve all sudokus"
   putStrLn "Option 2: Choose walkthough or solve for each sudoku"
   putStr "Please enter 1 or 2 to choose an option: "
@@ -36,7 +35,6 @@ options boards = do
     if (read c :: Int) == 1 then printSolution $ snd boards
     else do
       walkthrough boards
-  --putStrLn "test"
 
 walkthrough :: (Maybe Board, Maybe Board) -> IO()
 walkthrough boards = do
@@ -53,9 +51,8 @@ walkthrough boards = do
       putStrLn "That number doesn't work there!"
       walkthrough (board, solved)
       else do
-      --mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust $ assign (read number :: Int) square (fromJust board)]))
         walkthrough (assign (read number :: Int) square (fromJust board), solved)
-    --putStrLn "test"
+
 
 cross :: [a] -> [a] -> [[a]]
 cross s1 s2 = [[r, c] | r <- s1, c <- s2]
@@ -225,7 +222,6 @@ chunkOf' :: Int -> [a] -> [[a]]
 chunkOf' _ [] = []
 chunkOf' i ls = take i ls : chunkOf' i (drop i ls)
 
---printSolution $ solveSudoku ""
 printSolution :: Maybe Board -> IO()
 printSolution bd = do
   if isNothing bd then putStrLn "This is not a valid sudoku"
