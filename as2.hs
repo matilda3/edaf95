@@ -34,24 +34,25 @@ options boards = do
     c <- getLine
     if (read c :: Int) == 1 then printSolution $ snd boards
     else do
-      walkthrough boards
+      walkthrough boards (filter (/= "") [if length (snd v) == 1 then fst v else ""| v <- fromJust $ fst boards])
 
-walkthrough :: (Maybe Board, Maybe Board) -> IO()
-walkthrough boards = do
+walkthrough :: (Maybe Board, Maybe Board) -> [String] -> IO()
+walkthrough boards list = do
   let solved = snd boards
   let board = fst boards
   if board == solved then putStrLn "You solved the sudoku!"
   else do
-    mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust board]))
+    --mapM_ (putStrLn . unwords) (chunkOf' 9 ([if length (snd y) == 1 then show (head $ snd y) ++ " " else fst y | y <- fromJust board]))
+    mapM_ (putStrLn . unwords) (chunkOf' 9 ([if fst y `elem` list then show (head $ snd y) ++ " " else fst y | y <- fromJust board]))
     putStr "Please enter a square to change: "
     square <- getLine
     putStr "Please enter a number to put in that square: "
     number <- getLine
     if (read number :: Int) `notElem` lookupList square (fromJust solved) then do
       putStrLn "That number doesn't work there!"
-      walkthrough (board, solved)
+      walkthrough (board, solved) list
       else do
-        walkthrough (assign (read number :: Int) square (fromJust board), solved)
+        walkthrough (assign (read number :: Int) square (fromJust board), solved) (square : list)
 
 
 cross :: [a] -> [a] -> [[a]]
